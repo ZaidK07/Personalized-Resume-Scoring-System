@@ -1,0 +1,7 @@
+mistralai
+flask
+Flask-RESTful
+dotenv
+pinecone
+langchain-mistralai
+langchain
