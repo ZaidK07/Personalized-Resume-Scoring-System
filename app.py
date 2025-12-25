@@ -10,6 +10,9 @@ app = Flask(__name__)
 
 api = Api(app)
 
+from config.pinecone_service.pc_config import ensure_pinecone_index
+ensure_pinecone_index()
+
 
 
 if __name__ == '__main__':

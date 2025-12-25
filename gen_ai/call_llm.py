@@ -9,15 +9,15 @@ model = os.getenv("MODEL_ID")
 
 client = Mistral(api_key = api_key)
 
-def invoke_model(model_prompt):
+def invoke_model(prompt, temperature=0, max_tokens=1024):
     response = client.chat.complete(
         model = model,
         messages = [{
             'role': 'user',
-            'content': model_prompt
+            'content': prompt
         }],
-        temperature = 0,
-        max_tokens = 1024
+        temperature = temperature,
+        max_tokens = max_tokens
     )
     print("Total Tokens(call_llm.invoke_model)-->",response.usage.total_tokens)
     return response.choices[0].message.content
@@ -25,5 +25,5 @@ def invoke_model(model_prompt):
 
 
 if __name__ == '__main__':
-    response = invoke_model(model_prompt = "Hello there!")
+    response = invoke_model(prompt = "Hello there!")
     print(response)
