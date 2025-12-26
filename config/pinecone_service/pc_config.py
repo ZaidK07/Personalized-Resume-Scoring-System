@@ -7,6 +7,8 @@ pc_client = Pinecone(api_key = os.getenv("PINECONE_API_KEY"))
 
 index_name = "resume-scoring-system-index"
 
+embedding_model_name = 'multilingual-e5-large'
+
 
 def ensure_pinecone_index():
     pc_index_list = pc_client.list_indexes().names()
@@ -55,6 +57,15 @@ def get_similar_cases(user_id, embedding, top_k=7):
     return result
 
 
+def generate_embedding(text):
+    embedding = pc_client.inference.embed(
+        model = embedding_model_name,
+        inputs = [text],
+        parameters = {"input_type": "passage", "truncate": "END"}
+    )[0].values
+    return embedding
+
+
 
 if __name__ == '__main__':
     ensure_pinecone_index()
@@ -70,3 +81,6 @@ if __name__ == '__main__':
 
     response = get_similar_cases(user_id = 'test_user',embedding=[0.01]*1024)
     print(response)
+
+    # embed = generate_embedding(text = 'Hello there!')
+    # print(embed)

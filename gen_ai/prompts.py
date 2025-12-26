@@ -5,7 +5,7 @@ system_prompt = """
 
 Data Flow:
 1. You will get Resume, Job Description & user_id.
-2. Then use tool to find similar cases of Job Description & Resume for that particular User.
+2. Then use tool to find similar cases of Job Description & Resume for that particular User(Using the given user_id).
 3. Then you will get
 
 """
