@@ -21,27 +21,15 @@ Data Flow:
 
 
 json_schema = {
-  "type": "object",
-  "properties": {
-    "ai_score": {
-      "type": "number",
-      "minimum": 0,
-      "maximum": 10
+    "title": "ResumeScore",
+    "description": "AI evaluation of resume against job description",
+    "type": "object",
+    "properties": {
+        "ai_score": {"type": "number", "minimum": 0, "maximum": 10},
+        "pros": {"type": "array", "items": {"type": "string"}},
+        "cons": {"type": "array", "items": {"type": "string"}}
     },
-    "pros": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "cons": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    }
-  },
-  "required": ["ai_score", "pros", "cons"]
+    "required": ["ai_score", "pros", "cons"]
 }
 
 

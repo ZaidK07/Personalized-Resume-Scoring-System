@@ -3,16 +3,16 @@ from langchain_mistralai import ChatMistralAI
 from langchain.agents import create_agent
 from gen_ai.agent_config.tools import get_user_profile
 from langchain_core.messages import SystemMessage, HumanMessage
-from gen_ai.prompts import system_prompt
+from gen_ai.prompts import system_prompt, json_schema
 
 
 MODEL_ID = os.getenv("MODEL_ID")
 
 tools_list = [get_user_profile]
 
-CLIENT = ChatMistralAI(model = MODEL_ID, temperature = 0)
+CLIENT = ChatMistralAI(model = MODEL_ID, temperature = 0, api_key = os.getenv("API_KEY"))
 
-AGENT = create_agent(CLIENT, tools = tools_list)
+AGENT = create_agent(CLIENT, tools = tools_list, response_format = json_schema)
 
 
 def invoke_agent(user_prompt):
