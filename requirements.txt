@@ -5,3 +5,7 @@ dotenv
 pinecone
 langchain-mistralai
 langchain
+flask-cors
+
+pypdf
+python-docx
