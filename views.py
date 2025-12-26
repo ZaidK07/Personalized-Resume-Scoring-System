@@ -2,6 +2,7 @@ from flask_restful import Resource
 from flask import request
 from config.utils import get_text_from_file
 from gen_ai.agent_config.agent import invoke_agent
+from config.pinecone_service.pc_config import generate_embedding, add_feedback_record
 
 
 class Home(Resource):
@@ -36,7 +37,7 @@ class GetResumeScore(Resource):
                 'content': resume_text
             })
 
-        main_list = []
+        scored_list = []
         for resume in resume_text_list:
             user_prompt = f"""
             Job Description: {job_description_text}
@@ -47,9 +48,38 @@ class GetResumeScore(Resource):
             """
 
             response = invoke_agent(user_prompt = user_prompt)
-            main_list.append({
-                'name': resume['filename'],
-                'response': response
+            scored_list.append({
+                'resume_name': resume['filename'],
+                'model_response': response,
+                'resume_content': resume['content'],
+                'job_description': job_description_text
             })
 
-        return main_list, 200
+        return {'scored_list': scored_list}, 200
+
+
+class SubmitFeedback(Resource):
+    def post(self):
+        json_data = request.get_json()
+
+        user_id = json_data.get('user_id','')
+        job_description = json_data.get('job_description')
+        resume_content = json_data.get('resume_content')
+        reason = json_data.get('reason')
+
+        if not all([user_id, job_description, resume_content, reason]):
+            return {'msg': 'Missing required fields'}, 400
+
+        combined_text = job_description[:1000] + resume_content[:1000]
+
+        embedding = generate_embedding(text=combined_text)
+
+        vector_id = add_feedback_record(
+            user_id = user_id,
+            job_description = job_description[:1000],
+            resume = resume_content[:1000],
+            reason = reason,
+            embedding = embedding
+        )
+
+        return {'msg': 'Feedback saved successfully', 'id': vector_id}, 200
