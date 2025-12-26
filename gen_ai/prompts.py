@@ -43,3 +43,25 @@ json_schema = {
   },
   "required": ["ai_score", "pros", "cons"]
 }
+
+
+def get_summarise_profile_prompt(top_cases_list):
+    prompt = f"""
+    You are a summarizer assistant.
+    You will get cases in which the AI gave score to a particular resume with respect to a job description
+    but the user disagreed with it and provided their reason / preference for that.
+
+    There will be a list of dictionaries in which there will be cases of user disagreeing with an AI decision.
+    In the same list there will be the reason(per case/dict) why user disagreed in that particular case.
+
+    Your job is to summarise all that lists and create a User Profile which clearly reflects their preferences.
+
+    The profile should be at max 150-200 words. And it should strictly include all important information about
+    user's preferences while hiring.
+
+    -----
+
+    The list with various cases:
+    {top_cases_list}
+    """
+    return prompt
