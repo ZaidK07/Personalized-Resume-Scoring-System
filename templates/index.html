@@ -1,0 +1,661 @@
+{% raw %}<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ResumeAI - Personalized Scoring</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    
+    <!-- Marked.js for Markdown Rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            900: '#0c4a6e',
+                        },
+                        accent: {
+                            50: '#fdf4ff',
+                            500: '#d946ef',
+                        }
+                    },
+                    animation: {
+                        blob: "blob 7s infinite",
+                        'slide-in': 'slideIn 0.3s ease-out forwards',
+                        'fade-in-up': 'fadeInUp 0.3s ease-out forwards'
+                    },
+                    keyframes: {
+                        blob: {
+                            "0%": { transform: "translate(0px, 0px) scale(1)" },
+                            "33%": { transform: "translate(30px, -50px) scale(1.1)" },
+                            "66%": { transform: "translate(-20px, 20px) scale(0.9)" },
+                            "100%": { transform: "translate(0px, 0px) scale(1)" }
+                        },
+                        slideIn: {
+                            '0%': { transform: 'translateX(100%)', opacity: '0.5' },
+                            '100%': { transform: 'translateX(0)', opacity: '1' },
+                        },
+                        fadeInUp: {
+                            '0%': { transform: 'translateY(20px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        [v-cloak] { display: none; }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .prose p { margin-bottom: 0.5em; }
+        .prose ul { list-style-type: disc; padding-left: 1.2em; margin-bottom: 0.5em; }
+        .prose strong { font-weight: 600; color: #374151; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 h-screen overflow-hidden flex flex-col font-sans">
+
+    <div id="app" v-cloak class="h-full flex flex-col">
+        
+        <!-- Header -->
+        <header class="h-16 px-6 flex items-center justify-between glass-panel z-20 shadow-sm shrink-0">
+            <div class="flex items-center gap-2 text-brand-900">
+                <i class="ph-duotone ph-brain text-2xl text-brand-500"></i>
+                <h1 class="text-xl font-medium tracking-tight">Personalized Resume Scoring System <span class="font-normal text-sm text-slate-500 ml-2">By Zaid</span></h1>
+            </div>
+
+            <!-- User Dropdown -->
+            <div class="relative flex items-center gap-2">
+                <span class="text-sm text-slate-600">User Selection:</span>
+                <button @click="showUserMenu = !showUserMenu" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-slate-200 hover:bg-slate-50 transition-colors shadow-sm text-sm">
+                    <div class="w-6 h-6 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center text-xs font-bold">
+                        {{ currentUser ? currentUser.charAt(0).toUpperCase() : '?' }}
+                    </div>
+                    <span class="font-medium truncate max-w-[100px]">{{ currentUser || 'Select User' }}</span>
+                    <i class="ph ph-caret-down text-slate-400"></i>
+                </button>
+
+                <!-- Dropdown Menu -->
+                <div v-if="showUserMenu" class="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-slate-100 py-1 z-50">
+                    <div class="px-3 py-2 border-b border-slate-50">
+                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Switch Profile</p>
+                    </div>
+                    <div class="max-h-48 overflow-y-auto">
+                        <button v-for="user in users" :key="user" @click="selectUser(user)" class="w-full text-left px-4 py-2 text-sm hover:bg-slate-50 flex items-center justify-between group">
+                            <span :class="{'text-brand-600 font-medium': user === currentUser}">{{ user }}</span>
+                            <i @click.stop="deleteUser(user)" class="ph ph-trash text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1"></i>
+                        </button>
+                    </div>
+                    <div class="border-t border-slate-50 p-2">
+                        <div class="flex gap-2">
+                            <input v-model="newUserIds" @keyup.enter="addUser" placeholder="New User ID..." class="flex-1 px-2 py-1 text-sm border border-slate-200 rounded-md focus:outline-none focus:border-brand-500">
+                            <button @click="addUser" class="px-2 py-1 bg-brand-500 text-white rounded-md text-xs hover:bg-brand-600">Add</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-hidden relative">
+            
+            <!-- State: Input / Upload -->
+            <div v-if="view === 'input'" class="h-full flex flex-col items-center justify-center p-6 relative">
+                <!-- Background decorative blobs -->
+                <div class="absolute top-10 left-10 w-64 h-64 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
+                <div class="absolute top-10 right-10 w-64 h-64 bg-yellow-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
+                <div class="absolute -bottom-8 left-20 w-64 h-64 bg-pink-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000"></div>
+
+                <div class="max-w-4xl w-full grid grid-cols-1 md:grid-cols-2 gap-8 z-10">
+                    
+                    <!-- Job Description Upload -->
+                    <div class="flex flex-col gap-3">
+                        <label class="text-sm font-medium text-slate-600 ml-1">Job Description (PDF, DOCX, TXT)</label>
+                        <div 
+                            @dragover.prevent="dragOverJD = true" 
+                            @dragleave.prevent="dragOverJD = false" 
+                            @drop.prevent="handleDropJD"
+                            class="group relative h-64 rounded-2xl border-2 border-dashed transition-all duration-300 flex flex-col items-center justify-center bg-white/50 backdrop-blur-sm cursor-pointer hover:bg-white hover:border-brand-400"
+                            :class="jdFile ? 'border-brand-500 bg-brand-50/50' : (dragOverJD ? 'border-brand-500 bg-brand-50' : 'border-slate-300')"
+                        >
+                            <input type="file" ref="jdInput" @change="handleFileJD" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept=".pdf,.docx,.txt">
+                            
+                            <div v-if="!jdFile" class="text-center p-6">
+                                <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-400 mx-auto flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                                    <i class="ph ph-briefcase text-2xl"></i>
+                                </div>
+                                <p class="text-slate-600 font-medium">Drop Job Description</p>
+                                <p class="text-xs text-slate-400 mt-1">or click to browse</p>
+                            </div>
+                            
+                            <div v-else class="text-center p-6 w-full">
+                                <div class="w-12 h-12 rounded-full bg-brand-100 text-brand-600 mx-auto flex items-center justify-center mb-3">
+                                    <i class="ph-duotone ph-file-text text-2xl"></i>
+                                </div>
+                                <p class="text-slate-800 font-medium truncate px-4">{{ jdFile.name }}</p>
+                                <button @click.prevent="jdFile = null; $refs.jdInput.value = ''" class="mt-3 text-xs text-red-500 hover:text-red-700 font-medium z-20 relative">Remove</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Resumes Upload -->
+                    <div class="flex flex-col gap-3">
+                        <label class="text-sm font-medium text-slate-600 ml-1">Resumes (Multiple)</label>
+                        <div 
+                            @dragover.prevent="dragOverResumes = true" 
+                            @dragleave.prevent="dragOverResumes = false" 
+                            @drop.prevent="handleDropResumes"
+                            class="group relative h-64 rounded-2xl border-2 border-dashed transition-all duration-300 flex flex-col items-center justify-center bg-white/50 backdrop-blur-sm cursor-pointer hover:bg-white hover:border-brand-400"
+                            :class="resumeFiles.length > 0 ? 'border-brand-500 bg-brand-50/50' : (dragOverResumes ? 'border-brand-500 bg-brand-50' : 'border-slate-300')"
+                        >
+                            <input type="file" ref="resumeInput" @change="handleFileResumes" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" multiple accept=".pdf,.docx,.txt">
+                            
+                            <div v-if="resumeFiles.length === 0" class="text-center p-6">
+                                <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-400 mx-auto flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                                    <i class="ph ph-users text-2xl"></i>
+                                </div>
+                                <p class="text-slate-600 font-medium">Drop Resumes Here</p>
+                                <p class="text-xs text-slate-400 mt-1">Upload multiple files</p>
+                            </div>
+                            
+                            <div v-else class="text-center p-6 w-full">
+                                <div class="w-12 h-12 rounded-full bg-brand-100 text-brand-600 mx-auto flex items-center justify-center mb-3">
+                                    <i class="ph-duotone ph-files text-2xl"></i>
+                                </div>
+                                <p class="text-slate-800 font-medium">{{ resumeFiles.length }} Resumes selected</p>
+                                <p class="text-xs text-slate-500 mt-1 max-w-[200px] mx-auto truncate">{{ resumeFiles[0].name }} {{ resumeFiles.length > 1 ? `+${resumeFiles.length-1} more` : '' }}</p>
+                                <button @click.prevent="resumeFiles = []; $refs.resumeInput.value = ''" class="mt-3 text-xs text-red-500 hover:text-red-700 font-medium z-20 relative">Clear All</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-10 z-10 flex flex-col items-center gap-2">
+                    <button 
+                        @click="uploadAndAnalyze" 
+                        :disabled="!isValidToAnalyze"
+                        class="px-8 py-3 rounded-xl bg-brand-600 text-white font-medium shadow-lg shadow-brand-200 hover:bg-brand-700 hover:shadow-brand-300 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:shadow-none flex items-center gap-2"
+                    >
+                        <i v-if="loading" class="ph ph-spinner animate-spin text-xl"></i>
+                        <span v-if="!loading">Analyze Candidates</span>
+                        <span v-else>Analyzing...</span>
+                    </button>
+                    <p v-if="!currentUser" class="text-xs text-red-400 font-medium">Please select a user profile first</p>
+                </div>
+            </div>
+
+            <!-- State: Results -->
+            <div v-if="view === 'results'" class="h-full flex flex-col bg-slate-50">
+                <!-- Toolbar -->
+                <div class="px-8 py-4 flex items-center justify-between">
+                    <h2 class="text-xl font-semibold text-slate-800 flex items-center gap-2">
+                        Results 
+                        <span class="text-sm font-normal text-slate-500 bg-white px-2 py-0.5 rounded-full border border-slate-200">{{ scoredList.length }} Candidates</span>
+                    </h2>
+                    <button @click="resetApp" class="px-4 py-2 rounded-full bg-brand-500 text-white text-sm font-medium hover:bg-brand-600 transition-colors shadow-md flex items-center gap-1">
+                        <i class="ph ph-arrow-counter-clockwise"></i> New Analysis
+                    </button>
+                </div>
+
+                <!-- Cards Grid -->
+                <div class="flex-1 overflow-y-auto px-8 pb-12">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        <div v-for="(item, index) in scoredList" :key="index" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 hover:shadow-md transition-shadow relative group">
+                            
+                            <!-- Header -->
+                            <div class="flex justify-between items-start mb-4">
+                                <div class="w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold" 
+                                     :class="getScoreColor(item.parsedResponse.ai_score).bg">
+                                    <span :class="getScoreColor(item.parsedResponse.ai_score).text">{{ item.parsedResponse.ai_score }}</span>
+                                </div>
+                                <div class="flex gap-1">
+                                    <template v-if="!item.feedbackStatus">
+                                        <button @click="openFeedback(item, 'agree')" class="flex items-center gap-1 px-3 py-1 rounded-full bg-slate-50 hover:bg-green-50 text-slate-400 hover:text-green-600 transition-colors text-xs font-medium" title="I Agree">
+                                            <i class="ph-bold ph-thumbs-up"></i> Agree
+                                        </button>
+                                        <button @click="openFeedback(item, 'disagree')" class="flex items-center gap-1 px-3 py-1 rounded-full bg-slate-50 hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors text-xs font-medium" title="I Disagree">
+                                            <i class="ph-bold ph-thumbs-down"></i> Disagree
+                                        </button>
+                                    </template>
+                                    <span v-else class="text-xs font-medium px-2 py-1 rounded-full" :class="item.feedbackStatus === 'agreed' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">
+                                        {{ item.feedbackStatus === 'agreed' ? 'Agreed' : 'Disagreed' }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Content -->
+                            <div class="mb-4">
+                                <h3 class="font-semibold text-slate-800 truncate" :title="item.resume_name">{{ item.resume_name }}</h3>
+                                <p class="text-xs text-slate-500 mt-1 line-clamp-2">
+                                    {{ item.parsedResponse.pros[0].replace(/\*\*/g, '') }}
+                                </p>
+                            </div>
+
+                            <!-- Action -->
+                            <button @click="showDetails(item)" class="w-full py-2 rounded-lg bg-slate-50 text-slate-600 text-sm font-medium hover:bg-brand-50 hover:text-brand-600 transition-colors">
+                                View Analysis
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- Slide-over Details Panel -->
+        <div v-if="selectedResume" class="fixed inset-0 z-40 flex justify-end" role="dialog">
+            <!-- Backdrop -->
+            <div class="absolute inset-0 bg-slate-900/20 backdrop-blur-sm transition-opacity" @click="selectedResume = null"></div>
+            
+            <!-- Panel -->
+            <div class="relative w-full max-w-lg bg-white h-full shadow-2xl flex flex-col animate-slide-in">
+                <!-- Header -->
+                <div class="p-6 border-b border-slate-100 flex items-start justify-between bg-slate-50/50">
+                    <div>
+                        <div class="flex items-center gap-3 mb-1">
+                             <div class="px-2 py-0.5 rounded-md text-xs font-bold" :class="getScoreColor(selectedResume.parsedResponse.ai_score).bg + ' ' + getScoreColor(selectedResume.parsedResponse.ai_score).text">
+                                Score: {{ selectedResume.parsedResponse.ai_score }}/10
+                            </div>
+                        </div>
+                        <h2 class="text-xl font-bold text-slate-800 break-all">{{ selectedResume.resume_name }}</h2>
+                    </div>
+                    <button @click="selectedResume = null" class="text-slate-400 hover:text-slate-600">
+                        <i class="ph ph-x text-xl"></i>
+                    </button>
+                </div>
+
+                <!-- Body -->
+                <div class="flex-1 overflow-y-auto p-6 space-y-6">
+                    
+                    <!-- Pros -->
+                    <div>
+                        <h3 class="flex items-center gap-2 font-semibold text-green-700 mb-3">
+                            <i class="ph-fill ph-check-circle"></i> Strengths (Pros)
+                        </h3>
+                        <ul class="space-y-3">
+                            <li v-for="(pro, i) in selectedResume.parsedResponse.pros" :key="i" class="flex gap-3 text-sm text-slate-600 bg-green-50/50 p-3 rounded-lg border border-green-100">
+                                <div class="mt-0.5 min-w-[4px] w-1 h-1 bg-green-400 rounded-full"></div>
+                                <span v-html="renderMarkdown(pro)"></span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Cons -->
+                    <div>
+                        <h3 class="flex items-center gap-2 font-semibold text-red-700 mb-3">
+                            <i class="ph-fill ph-warning-circle"></i> Areas of Concern (Cons)
+                        </h3>
+                        <ul class="space-y-3">
+                            <li v-for="(con, i) in selectedResume.parsedResponse.cons" :key="i" class="flex gap-3 text-sm text-slate-600 bg-red-50/50 p-3 rounded-lg border border-red-100">
+                                <div class="mt-0.5 min-w-[4px] w-1 h-1 bg-red-400 rounded-full"></div>
+                                <span v-html="renderMarkdown(con)"></span>
+                            </li>
+                        </ul>
+                    </div>
+
+                </div>
+                
+                <!-- Footer Action -->
+                <div class="p-6 border-t border-slate-100 bg-slate-50 flex gap-3">
+                    <template v-if="!selectedResume.feedbackStatus">
+                        <button @click="openFeedback(selectedResume, 'agree')" class="flex-1 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 font-medium hover:bg-green-50 hover:border-green-200 hover:text-green-700 transition-all text-sm">
+                            <i class="ph-bold ph-thumbs-up"></i> Agree with AI
+                        </button>
+                        <button @click="openFeedback(selectedResume, 'disagree')" class="flex-1 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 font-medium hover:bg-red-50 hover:border-red-200 hover:text-red-700 transition-all text-sm">
+                            <i class="ph-bold ph-thumbs-down"></i> Disagree
+                        </button>
+                    </template>
+                    <span v-else class="flex-1 text-center py-2.5 rounded-xl text-sm font-medium" :class="selectedResume.feedbackStatus === 'agreed' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">
+                        Feedback: {{ selectedResume.feedbackStatus === 'agreed' ? 'Agreed' : 'Disagreed' }}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Feedback Modal -->
+        <div v-if="feedbackModal.open" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" @click="closeFeedback"></div>
+            <div class="relative w-full max-w-md bg-white rounded-2xl shadow-2xl p-6 transform transition-all scale-100">
+                <div class="text-center mb-6">
+                    <div class="w-12 h-12 rounded-full mx-auto flex items-center justify-center mb-3"
+                        :class="feedbackModal.type === 'agree' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'">
+                        <i class="ph-duotone text-2xl" :class="feedbackModal.type === 'agree' ? 'ph-thumbs-up' : 'ph-thumbs-down'"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-slate-800">
+                        {{ feedbackModal.type === 'agree' ? 'Good to hear!' : 'Help us improve' }}
+                    </h3>
+                    <p class="text-sm text-slate-500 mt-1">
+                        {{ feedbackModal.type === 'agree' ? 'We are glad you agree with the evaluation.' : 'Please tell us why you disagree so the AI can learn.' }}
+                    </p>
+                </div>
+
+                <div v-if="feedbackModal.type === 'disagree'" class="mb-4">
+                    <textarea 
+                        v-model="feedbackModal.reason"
+                        placeholder="E.g. The candidate has good experience in X which is valuable..." 
+                        class="w-full h-32 p-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 resize-none bg-slate-50"
+                    ></textarea>
+                </div>
+
+                <div class="flex gap-3">
+                    <button @click="closeFeedback" class="flex-1 py-2 rounded-xl text-slate-500 hover:bg-slate-50 font-medium text-sm">Cancel</button>
+                    <button @click="submitFeedback" class="flex-1 py-2 rounded-xl bg-slate-800 text-white font-medium hover:bg-slate-900 shadow-lg shadow-slate-200 text-sm" :disabled="submittingFeedback">
+                        {{ submittingFeedback ? 'Saving...' : (feedbackModal.type === 'agree' ? 'Close' : 'Submit Feedback') }}
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast Notification -->
+        <div v-if="toast.show" class="fixed bottom-6 right-6 z-50 px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 animate-fade-in-up" 
+             :class="toast.type === 'success' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'">
+            <i class="ph-bold" :class="toast.type === 'success' ? 'ph-check' : 'ph-warning'"></i>
+            <span class="text-sm font-medium">{{ toast.message }}</span>
+        </div>
+
+    </div>
+
+    <script>
+        const { createApp, ref, computed, onMounted } = Vue;
+
+        createApp({
+            setup() {
+                // State
+                const view = ref('input'); // input, results
+                const users = ref(['default_user', 'hr_manager_1', 'recruiter_alice']);
+                const currentUser = ref('');
+                const newUserIds = ref('');
+                const showUserMenu = ref(false);
+                
+                const jdFile = ref(null);
+                const resumeFiles = ref([]);
+                const dragOverJD = ref(false);
+                const dragOverResumes = ref(false);
+                
+                const loading = ref(false);
+                const scoredList = ref([]);
+                const selectedResume = ref(null);
+                
+                const feedbackModal = ref({ open: false, type: 'agree', item: null, reason: '' });
+                const submittingFeedback = ref(false);
+                const toast = ref({ show: false, message: '', type: 'success' });
+
+                // Lifecycle
+                onMounted(() => {
+                    const savedUsers = localStorage.getItem('resume_ai_users');
+                    if (savedUsers) users.value = JSON.parse(savedUsers);
+                    
+                    const lastUser = localStorage.getItem('resume_ai_last_user');
+                    if (lastUser && users.value.includes(lastUser)) currentUser.value = lastUser;
+                });
+
+                // Computed
+                const isValidToAnalyze = computed(() => {
+                    return currentUser.value && jdFile.value && resumeFiles.value.length > 0 && !loading.value;
+                });
+
+// Methods
+                const addUser = () => {
+                    if (newUserIds.value && !users.value.includes(newUserIds.value)) {
+                        users.value.push(newUserIds.value);
+                        saveUsers();
+                        selectUser(newUserIds.value);
+                        newUserIds.value = '';
+                    }
+                };
+
+                const deleteUser = (u) => {
+                    users.value = users.value.filter(x => x !== u);
+                    if (currentUser.value === u) currentUser.value = '';
+                    saveUsers();
+                };
+
+                const selectUser = (u) => {
+                    currentUser.value = u;
+                    localStorage.setItem('resume_ai_last_user', u);
+                    showUserMenu.value = false;
+                };
+
+                const saveUsers = () => localStorage.setItem('resume_ai_users', JSON.stringify(users.value));
+
+                const handleFileJD = (e) => jdFile.value = e.target.files[0];
+                const handleDropJD = (e) => {
+                    dragOverJD.value = false;
+                    if (e.dataTransfer.files.length) jdFile.value = e.dataTransfer.files[0];
+                };
+
+                const handleFileResumes = (e) => resumeFiles.value = Array.from(e.target.files);
+                const handleDropResumes = (e) => {
+                    dragOverResumes.value = false;
+                    if (e.dataTransfer.files.length) resumeFiles.value = Array.from(e.dataTransfer.files);
+                };
+
+                // ---- CORE PARSING LOGIC ----
+                const parseModelResponse = (responseStr) => {
+                    try {
+                        // The backend returns a string representation of a Python dict.
+                        // We need to carefully parse this.
+                        // Strategy: Use a loose parser or regex cleanup.
+                        
+                        // 1. Remove the prefix text
+                        let jsonStr = responseStr.replace(/^Returning structured response:\s*/, '');
+                        
+                        // 2. Replace single quotes with double quotes for JSON compatibility
+                        // This is risky if content contains single quotes. 
+                        // Better approach: regex to find keys and replace quotes, then handle values.
+                        // However, given the complexity of text content, let's try a safer python-literal-to-json approach.
+                        // We will use a Function constructor hack (careful!) or basic replacement if simple.
+                        
+                        // Simple replacement for keys and structure
+                        // Replace 'key': with "key":
+                        jsonStr = jsonStr.replace(/'([^']+)':/g, '"$1":');
+                        
+                        // Now the values are tricky because they might contain commas or single quotes.
+                        // Let's assume the model follows the schema strictly.
+                        // We can try to assume strings are wrapped in ' '.
+                        
+                        // Hacky fix for the specific format seen in examples:
+                        // It uses single quotes for strings. We need to swap them to double, 
+                        // BUT escape any double quotes inside first.
+                        
+                        // Alternative: Since we can't change backend, we have to do our best.
+                        // Let's try to evaluate it as JS object if the syntax allows (it's close to JS object notation).
+                        // Python: {'a': 1, 'b': ['c']}  JS: {'a': 1, 'b': ['c']} -> invalid because of quotes.
+                        
+                        // Let's replace ' with " BUT only if it looks like a delimiter.
+                        // This is extremely hard with regex. 
+                        
+                        // Let's use a dirty eval approach with safety wrappers since this is a prototype/CLI tool context.
+                        // Note: In production, this is unsafe. But "no backend change" forces our hand.
+                        // Python None -> null, True -> true, False -> false
+                        const jsFriendly = jsonStr
+                            .replace(/None/g, 'null')
+                            .replace(/True/g, 'true')
+                            .replace(/False/g, 'false');
+                        
+                        // We need to swap single quotes for double quotes for the parser, OR just run it.
+                        // JS objects key can be unquoted, but strings must be quoted.
+                        // Python strings use '. JS strings can use '. 
+                        // So actually... { 'key': 'value' } IS valid Javascript!
+                        // The only issue is `Returning structured response:` prefix.
+                        
+                        // Let's try just evaluating the dictionary part!
+                        const fixedStr = "(" + jsFriendly + ")";
+                        return eval(fixedStr); 
+                        
+                    } catch (e) {
+                        console.error("Parsing failed", e);
+                        return { ai_score: 0, pros: ["Error parsing model response"], cons: [responseStr] };
+                    }
+                };
+
+                const uploadAndAnalyze = async () => {
+                    if (!isValidToAnalyze.value) return;
+                    
+                    loading.value = true;
+                    const formData = new FormData();
+                    formData.append('job_description', jdFile.value);
+                    resumeFiles.value.forEach(f => formData.append('resume_files', f));
+                    formData.append('user_id', currentUser.value);
+
+                    try {
+                        const res = await fetch('/get-resume-score', {
+                            method: 'POST',
+                            body: formData
+                        });
+                        
+                        const data = await res.json();
+                        
+                        if (data.scored_list) {
+                            scoredList.value = data.scored_list.map(item => ({
+                                ...item,
+                                parsedResponse: parseModelResponse(item.model_response),
+                                feedbackStatus: null // Initialize feedback status for each item
+                            }));
+                            view.value = 'results';
+                        } else {
+                            showToast(data.msg || 'Error processing request', 'error');
+                        }
+                    } catch (err) {
+                        showToast('Network error or server issue', 'error');
+                        console.error(err);
+                    } finally {
+                        loading.value = false;
+                    }
+                };
+
+                const openFeedback = (item, type) => {
+                    feedbackModal.value = {
+                        open: true,
+                        type,
+                        item,
+                        reason: ''
+                    };
+                    
+                    if (type === 'agree') {
+                        // User clicked agree.
+                    }
+                };
+
+                const closeFeedback = () => {
+                    feedbackModal.value.open = false;
+                };
+
+                const submitFeedback = async () => {
+                    const { type, item, reason } = feedbackModal.value;
+                    
+                    if (type === 'agree') {
+                        item.feedbackStatus = 'agreed'; // Set status for the item
+                        showToast('Feedback recorded (Agreement)', 'success');
+                        closeFeedback();
+                        return;
+                    }
+
+                    if (!reason.trim()) {
+                        showToast('Please provide a reason', 'error');
+                        return;
+                    }
+
+                    submittingFeedback.value = true;
+                    
+                    try {
+                        const payload = {
+                            user_id: currentUser.value,
+                            job_description: item.job_description,
+                            resume_content: item.resume_content,
+                            reason: reason
+                        };
+
+                        const res = await fetch('/submit-feedback', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+
+                        if (res.ok) {
+                            item.feedbackStatus = 'disagreed'; // Set status for the item
+                            showToast('Feedback saved to knowledge base!', 'success');
+                            closeFeedback();
+                        } else {
+                            showToast('Failed to save feedback', 'error');
+                        }
+                    } catch (e) {
+                        showToast('Error submitting feedback', 'error');
+                    } finally {
+                        submittingFeedback.value = false;
+                    }
+                };
+
+                const resetApp = () => {
+                    view.value = 'input';
+                    scoredList.value = [];
+                    jdFile.value = null;
+                    resumeFiles.value = [];
+                };
+
+                const showDetails = (item) => {
+                    selectedResume.value = item;
+                };
+
+                const renderMarkdown = (text) => {
+                    return marked.parseInline(text);
+                };
+
+                const getScoreColor = (score) => {
+                    if (score >= 8) return { bg: 'bg-green-100', text: 'text-green-600' };
+                    if (score >= 5) return { bg: 'bg-yellow-100', text: 'text-yellow-600' };
+                    return { bg: 'bg-red-100', text: 'text-red-600' };
+                };
+
+                const showToast = (msg, type) => {
+                    toast.value = { show: true, message: msg, type };
+                    setTimeout(() => toast.value.show = false, 3000);
+                };
+
+                return {
+                    view, users, currentUser, newUserIds, showUserMenu,
+                    jdFile, resumeFiles, dragOverJD, dragOverResumes,
+                    loading, scoredList, selectedResume, feedbackModal, toast, submittingFeedback,
+                    addUser, deleteUser, selectUser, handleFileJD, handleDropJD, handleFileResumes, handleDropResumes,
+                    uploadAndAnalyze, isValidToAnalyze, getScoreColor, showDetails, renderMarkdown,
+                    openFeedback, closeFeedback, submitFeedback, resetApp
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>{% endraw %}
