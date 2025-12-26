@@ -43,7 +43,7 @@ def add_feedback_record(user_id, job_description, resume, reason, embedding):
     return vector_id
 
 
-def get_similar_cases(user_id, embedding, top_k=20):
+def get_similar_cases(user_id, embedding, top_k=7):
     result = pc_client.Index(index_name).query(
         vector=embedding,
         top_k=top_k,
@@ -51,8 +51,8 @@ def get_similar_cases(user_id, embedding, top_k=20):
             "user_id": {"$eq": user_id}
         },
         include_metadata=True # metadata means the text data we inserted or it just returns ID
-    )
-    return result['matches']
+    ).get('matches')
+    return result
 
 
 
