@@ -13,4 +13,32 @@ Data Flow:
     (iii) User Profile / Preferences, (iv) user_id
 4. Now your job is to evaluate Job Description, Resume & User's preferences and return a predefined JSON
     Schema that you will be provided.
+5. Schema will contain 3 main properties:
+    (i) Score -> score you think resume deserves after taking into consideration Job Description, Resume, & User Preference.
+    (ii) Pros -> good things you found about the candidate with respect to Job Description, Resume & User Profile
+    (iii) Cons -> non-good things you found about the candidate with respect to Job Description, Resume & User Profile
 """
+
+json_schema = {
+  "type": "object",
+  "properties": {
+    "ai_score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 10
+    },
+    "pros": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "cons": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": ["ai_score", "pros", "cons"]
+}
