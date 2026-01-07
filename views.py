@@ -62,7 +62,7 @@ class SubmitFeedback(Resource):
     def post(self):
         json_data = request.get_json()
 
-        user_id = json_data.get('user_id','')
+        user_id = json_data.get('user_id')
         job_description = json_data.get('job_description')
         resume_content = json_data.get('resume_content')
         reason = json_data.get('reason')

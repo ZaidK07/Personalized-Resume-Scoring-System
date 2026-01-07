@@ -4,21 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ResumeAI - Personalized Scoring</title>
-    
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
-    
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
     <!-- Vue 3 -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    
+
     <!-- Marked.js for Markdown Rendering -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    
+
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
@@ -79,7 +79,7 @@
         .prose p { margin-bottom: 0.5em; }
         .prose ul { list-style-type: disc; padding-left: 1.2em; margin-bottom: 0.5em; }
         .prose strong { font-weight: 600; color: #374151; }
-        
+
         /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
@@ -90,17 +90,17 @@
 <body class="bg-slate-50 text-slate-800 h-screen overflow-hidden flex flex-col font-sans">
 
     <div id="app" v-cloak class="h-full flex flex-col">
-        
+
         <!-- Header -->
         <header class="h-16 px-6 flex items-center justify-between glass-panel z-20 shadow-sm shrink-0">
             <div class="flex items-center gap-2 text-brand-900">
                 <i class="ph-duotone ph-brain text-2xl text-brand-500"></i>
-                <h1 class="text-xl font-medium tracking-tight">Personalized Resume Scoring System <span class="font-normal text-sm text-slate-500 ml-2">By Zaid</span></h1>
+                <h1 class="text-xl font-medium tracking-tight">Personalized Resume Scoring System <span class="font-normal text-sm text-slate-500 ml-2">Personalization by User Profile</span></h1>
             </div>
 
             <!-- User Dropdown -->
             <div class="relative flex items-center gap-2">
-                <span class="text-sm text-slate-600">User Selection:</span>
+                <span class="text-sm text-slate-600">User Profile Selection:</span>
                 <button @click="showUserMenu = !showUserMenu" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-slate-200 hover:bg-slate-50 transition-colors shadow-sm text-sm">
                     <div class="w-6 h-6 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center text-xs font-bold">
                         {{ currentUser ? currentUser.charAt(0).toUpperCase() : '?' }}
@@ -110,7 +110,7 @@
                 </button>
 
                 <!-- Dropdown Menu -->
-                <div v-if="showUserMenu" class="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-slate-100 py-1 z-50">
+                <div v-if="showUserMenu" class="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-lg border border-slate-100 py-1 z-50">
                     <div class="px-3 py-2 border-b border-slate-50">
                         <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Switch Profile</p>
                     </div>
@@ -132,7 +132,7 @@
 
         <!-- Main Content -->
         <main class="flex-1 overflow-hidden relative">
-            
+
             <!-- State: Input / Upload -->
             <div v-if="view === 'input'" class="h-full flex flex-col items-center justify-center p-6 relative">
                 <!-- Background decorative blobs -->
@@ -141,19 +141,19 @@
                 <div class="absolute -bottom-8 left-20 w-64 h-64 bg-pink-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000"></div>
 
                 <div class="max-w-4xl w-full grid grid-cols-1 md:grid-cols-2 gap-8 z-10">
-                    
+
                     <!-- Job Description Upload -->
                     <div class="flex flex-col gap-3">
-                        <label class="text-sm font-medium text-slate-600 ml-1">Job Description (PDF, DOCX, TXT)</label>
-                        <div 
-                            @dragover.prevent="dragOverJD = true" 
-                            @dragleave.prevent="dragOverJD = false" 
+                        <label class="text-sm font-medium text-slate-600 ml-1">Job Description (PDF, DOCX, TXT) Only 1 file supported at a time!</label>
+                        <div
+                            @dragover.prevent="dragOverJD = true"
+                            @dragleave.prevent="dragOverJD = false"
                             @drop.prevent="handleDropJD"
                             class="group relative h-64 rounded-2xl border-2 border-dashed transition-all duration-300 flex flex-col items-center justify-center bg-white/50 backdrop-blur-sm cursor-pointer hover:bg-white hover:border-brand-400"
                             :class="jdFile ? 'border-brand-500 bg-brand-50/50' : (dragOverJD ? 'border-brand-500 bg-brand-50' : 'border-slate-300')"
                         >
                             <input type="file" ref="jdInput" @change="handleFileJD" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept=".pdf,.docx,.txt">
-                            
+
                             <div v-if="!jdFile" class="text-center p-6">
                                 <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-400 mx-auto flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                                     <i class="ph ph-briefcase text-2xl"></i>
@@ -161,7 +161,7 @@
                                 <p class="text-slate-600 font-medium">Drop Job Description</p>
                                 <p class="text-xs text-slate-400 mt-1">or click to browse</p>
                             </div>
-                            
+
                             <div v-else class="text-center p-6 w-full">
                                 <div class="w-12 h-12 rounded-full bg-brand-100 text-brand-600 mx-auto flex items-center justify-center mb-3">
                                     <i class="ph-duotone ph-file-text text-2xl"></i>
@@ -174,16 +174,16 @@
 
                     <!-- Resumes Upload -->
                     <div class="flex flex-col gap-3">
-                        <label class="text-sm font-medium text-slate-600 ml-1">Resumes (Multiple)</label>
-                        <div 
-                            @dragover.prevent="dragOverResumes = true" 
-                            @dragleave.prevent="dragOverResumes = false" 
+                        <label class="text-sm font-medium text-slate-600 ml-1">Resumes (PDF, DOCX, TXT) Multiple files supported!</label>
+                        <div
+                            @dragover.prevent="dragOverResumes = true"
+                            @dragleave.prevent="dragOverResumes = false"
                             @drop.prevent="handleDropResumes"
                             class="group relative h-64 rounded-2xl border-2 border-dashed transition-all duration-300 flex flex-col items-center justify-center bg-white/50 backdrop-blur-sm cursor-pointer hover:bg-white hover:border-brand-400"
                             :class="resumeFiles.length > 0 ? 'border-brand-500 bg-brand-50/50' : (dragOverResumes ? 'border-brand-500 bg-brand-50' : 'border-slate-300')"
                         >
                             <input type="file" ref="resumeInput" @change="handleFileResumes" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" multiple accept=".pdf,.docx,.txt">
-                            
+
                             <div v-if="resumeFiles.length === 0" class="text-center p-6">
                                 <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-400 mx-auto flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                                     <i class="ph ph-users text-2xl"></i>
@@ -191,7 +191,7 @@
                                 <p class="text-slate-600 font-medium">Drop Resumes Here</p>
                                 <p class="text-xs text-slate-400 mt-1">Upload multiple files</p>
                             </div>
-                            
+
                             <div v-else class="text-center p-6 w-full">
                                 <div class="w-12 h-12 rounded-full bg-brand-100 text-brand-600 mx-auto flex items-center justify-center mb-3">
                                     <i class="ph-duotone ph-files text-2xl"></i>
@@ -205,8 +205,8 @@
                 </div>
 
                 <div class="mt-10 z-10 flex flex-col items-center gap-2">
-                    <button 
-                        @click="uploadAndAnalyze" 
+                    <button
+                        @click="uploadAndAnalyze"
                         :disabled="!isValidToAnalyze"
                         class="px-8 py-3 rounded-xl bg-brand-600 text-white font-medium shadow-lg shadow-brand-200 hover:bg-brand-700 hover:shadow-brand-300 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:shadow-none flex items-center gap-2"
                     >
@@ -223,7 +223,7 @@
                 <!-- Toolbar -->
                 <div class="px-8 py-4 flex items-center justify-between">
                     <h2 class="text-xl font-semibold text-slate-800 flex items-center gap-2">
-                        Results 
+                        Results
                         <span class="text-sm font-normal text-slate-500 bg-white px-2 py-0.5 rounded-full border border-slate-200">{{ scoredList.length }} Candidates</span>
                     </h2>
                     <button @click="resetApp" class="px-4 py-2 rounded-full bg-brand-500 text-white text-sm font-medium hover:bg-brand-600 transition-colors shadow-md flex items-center gap-1">
@@ -235,10 +235,10 @@
                 <div class="flex-1 overflow-y-auto px-8 pb-12">
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                         <div v-for="(item, index) in scoredList" :key="index" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 hover:shadow-md transition-shadow relative group">
-                            
+
                             <!-- Header -->
                             <div class="flex justify-between items-start mb-4">
-                                <div class="w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold" 
+                                <div class="w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold"
                                      :class="getScoreColor(item.parsedResponse.ai_score).bg">
                                     <span :class="getScoreColor(item.parsedResponse.ai_score).text">{{ item.parsedResponse.ai_score }}</span>
                                 </div>
@@ -280,7 +280,7 @@
         <div v-if="selectedResume" class="fixed inset-0 z-40 flex justify-end" role="dialog">
             <!-- Backdrop -->
             <div class="absolute inset-0 bg-slate-900/20 backdrop-blur-sm transition-opacity" @click="selectedResume = null"></div>
-            
+
             <!-- Panel -->
             <div class="relative w-full max-w-lg bg-white h-full shadow-2xl flex flex-col animate-slide-in">
                 <!-- Header -->
@@ -300,7 +300,7 @@
 
                 <!-- Body -->
                 <div class="flex-1 overflow-y-auto p-6 space-y-6">
-                    
+
                     <!-- Pros -->
                     <div>
                         <h3 class="flex items-center gap-2 font-semibold text-green-700 mb-3">
@@ -328,7 +328,7 @@
                     </div>
 
                 </div>
-                
+
                 <!-- Footer Action -->
                 <div class="p-6 border-t border-slate-100 bg-slate-50 flex gap-3">
                     <template v-if="!selectedResume.feedbackStatus">
@@ -364,9 +364,9 @@
                 </div>
 
                 <div v-if="feedbackModal.type === 'disagree'" class="mb-4">
-                    <textarea 
+                    <textarea
                         v-model="feedbackModal.reason"
-                        placeholder="E.g. The candidate has good experience in X which is valuable..." 
+                        placeholder="E.g. The candidate has good experience in X which is valuable..."
                         class="w-full h-32 p-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 resize-none bg-slate-50"
                     ></textarea>
                 </div>
@@ -381,7 +381,7 @@
         </div>
 
         <!-- Toast Notification -->
-        <div v-if="toast.show" class="fixed bottom-6 right-6 z-50 px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 animate-fade-in-up" 
+        <div v-if="toast.show" class="fixed bottom-6 right-6 z-50 px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 animate-fade-in-up"
              :class="toast.type === 'success' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'">
             <i class="ph-bold" :class="toast.type === 'success' ? 'ph-check' : 'ph-warning'"></i>
             <span class="text-sm font-medium">{{ toast.message }}</span>
@@ -396,20 +396,20 @@
             setup() {
                 // State
                 const view = ref('input'); // input, results
-                const users = ref(['default_user', 'hr_manager_1', 'recruiter_alice']);
+                const users = ref([]);
                 const currentUser = ref('');
                 const newUserIds = ref('');
                 const showUserMenu = ref(false);
-                
+
                 const jdFile = ref(null);
                 const resumeFiles = ref([]);
                 const dragOverJD = ref(false);
                 const dragOverResumes = ref(false);
-                
+
                 const loading = ref(false);
                 const scoredList = ref([]);
                 const selectedResume = ref(null);
-                
+
                 const feedbackModal = ref({ open: false, type: 'agree', item: null, reason: '' });
                 const submittingFeedback = ref(false);
                 const toast = ref({ show: false, message: '', type: 'success' });
@@ -418,7 +418,7 @@
                 onMounted(() => {
                     const savedUsers = localStorage.getItem('resume_ai_users');
                     if (savedUsers) users.value = JSON.parse(savedUsers);
-                    
+
                     const lastUser = localStorage.getItem('resume_ai_last_user');
                     if (lastUser && users.value.includes(lastUser)) currentUser.value = lastUser;
                 });
@@ -470,35 +470,35 @@
                         // The backend returns a string representation of a Python dict.
                         // We need to carefully parse this.
                         // Strategy: Use a loose parser or regex cleanup.
-                        
+
                         // 1. Remove the prefix text
                         let jsonStr = responseStr.replace(/^Returning structured response:\s*/, '');
-                        
+
                         // 2. Replace single quotes with double quotes for JSON compatibility
-                        // This is risky if content contains single quotes. 
+                        // This is risky if content contains single quotes.
                         // Better approach: regex to find keys and replace quotes, then handle values.
                         // However, given the complexity of text content, let's try a safer python-literal-to-json approach.
                         // We will use a Function constructor hack (careful!) or basic replacement if simple.
-                        
+
                         // Simple replacement for keys and structure
                         // Replace 'key': with "key":
                         jsonStr = jsonStr.replace(/'([^']+)':/g, '"$1":');
-                        
+
                         // Now the values are tricky because they might contain commas or single quotes.
                         // Let's assume the model follows the schema strictly.
                         // We can try to assume strings are wrapped in ' '.
-                        
+
                         // Hacky fix for the specific format seen in examples:
-                        // It uses single quotes for strings. We need to swap them to double, 
+                        // It uses single quotes for strings. We need to swap them to double,
                         // BUT escape any double quotes inside first.
-                        
+
                         // Alternative: Since we can't change backend, we have to do our best.
                         // Let's try to evaluate it as JS object if the syntax allows (it's close to JS object notation).
                         // Python: {'a': 1, 'b': ['c']}  JS: {'a': 1, 'b': ['c']} -> invalid because of quotes.
-                        
+
                         // Let's replace ' with " BUT only if it looks like a delimiter.
-                        // This is extremely hard with regex. 
-                        
+                        // This is extremely hard with regex.
+
                         // Let's use a dirty eval approach with safety wrappers since this is a prototype/CLI tool context.
                         // Note: In production, this is unsafe. But "no backend change" forces our hand.
                         // Python None -> null, True -> true, False -> false
@@ -506,17 +506,17 @@
                             .replace(/None/g, 'null')
                             .replace(/True/g, 'true')
                             .replace(/False/g, 'false');
-                        
+
                         // We need to swap single quotes for double quotes for the parser, OR just run it.
                         // JS objects key can be unquoted, but strings must be quoted.
-                        // Python strings use '. JS strings can use '. 
+                        // Python strings use '. JS strings can use '.
                         // So actually... { 'key': 'value' } IS valid Javascript!
                         // The only issue is `Returning structured response:` prefix.
-                        
+
                         // Let's try just evaluating the dictionary part!
                         const fixedStr = "(" + jsFriendly + ")";
-                        return eval(fixedStr); 
-                        
+                        return eval(fixedStr);
+
                     } catch (e) {
                         console.error("Parsing failed", e);
                         return { ai_score: 0, pros: ["Error parsing model response"], cons: [responseStr] };
@@ -525,7 +525,7 @@
 
                 const uploadAndAnalyze = async () => {
                     if (!isValidToAnalyze.value) return;
-                    
+
                     loading.value = true;
                     const formData = new FormData();
                     formData.append('job_description', jdFile.value);
@@ -537,9 +537,9 @@
                             method: 'POST',
                             body: formData
                         });
-                        
+
                         const data = await res.json();
-                        
+
                         if (data.scored_list) {
                             scoredList.value = data.scored_list.map(item => ({
                                 ...item,
@@ -565,7 +565,7 @@
                         item,
                         reason: ''
                     };
-                    
+
                     if (type === 'agree') {
                         // User clicked agree.
                     }
@@ -577,7 +577,7 @@
 
                 const submitFeedback = async () => {
                     const { type, item, reason } = feedbackModal.value;
-                    
+
                     if (type === 'agree') {
                         item.feedbackStatus = 'agreed'; // Set status for the item
                         showToast('Feedback recorded (Agreement)', 'success');
@@ -591,7 +591,7 @@
                     }
 
                     submittingFeedback.value = true;
-                    
+
                     try {
                         const payload = {
                             user_id: currentUser.value,
